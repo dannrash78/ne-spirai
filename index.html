@@ -38,7 +38,7 @@ button:hover{filter:brightness(.98)} .hint{background:#eef6ff;border-radius:11px
 <div class="wrap">
 <header class="tool-header">
   <div>
-    <h1>Лого към профилна снимка <span class="version-badge">v18</span></h1>
+    <h1>Лого към профилна снимка <span class="version-badge">v19</span></h1>
     <div class="subtitle">Добави избраното лого на кампанията към профилната си снимка, настрой размера, позицията и завъртането му и изтегли готовата снимка.</div>
   </div>
 </header>
@@ -133,7 +133,7 @@ button:hover{filter:brightness(.98)} .hint{background:#eef6ff;border-radius:11px
   </div>
 </div>
 
-  <div class="version-footer">Версия на инструмента: <strong>v18</strong> · обновена 26.09.2026</div>
+  <div class="version-footer">Версия на инструмента: <strong>v19</strong> · обновена 26.09.2026</div>
 </div>
 
 <script>
@@ -145,25 +145,26 @@ let selectedLogo = 'ne-spirai';
 const LOGO_SRC = LOGOS[selectedLogo];
 const canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
 const stage = document.getElementById('stage'), rotHandle = document.getElementById('rotHandle');
-const logoImg = new Image();
-function loadSelectedLogo(){
-  const src = LOGOS[selectedLogo];
-  if(!src) return;
-  logoImg.onload = () => {
-    if(state.showLogo) draw();
+const logoImages = {};
+Object.keys(LOGOS).forEach(name => {
+  const img = new Image();
+  img.onload = () => {
+    if (selectedLogo === name && typeof state !== 'undefined' && state.showLogo) draw();
   };
-  logoImg.onerror = () => {
-    console.error('Неуспешно зареждане на избраното лого:', selectedLogo);
-  };
-  logoImg.src = src;
-}
+  img.onerror = () => console.error('Неуспешно зареждане на логото:', name);
+  img.src = LOGOS[name];
+  logoImages[name] = img;
+});
+let logoImg = logoImages[selectedLogo];
+
 function selectLogo(name){
-  if(!LOGOS[name]) return;
+  if(!logoImages[name]) return;
   selectedLogo = name;
+  logoImg = logoImages[name];
   document.getElementById('logoNeSpiraiBtn').classList.toggle('active', name === 'ne-spirai');
   document.getElementById('logoAzSamBtn').classList.toggle('active', name === 'az-sam');
   state.showLogo = true;
-  loadSelectedLogo();
+  draw();
 }
 const photo = new Image();
 
@@ -177,7 +178,8 @@ let drag = null, activePointer = null;
 document.getElementById('logoNeSpiraiBtn').addEventListener('click', () => selectLogo('ne-spirai'));
 document.getElementById('logoAzSamBtn').addEventListener('click', () => selectLogo('az-sam'));
 
-loadSelectedLogo();
+// Both campaign logos are preloaded; the selected one is drawn immediately.
+logoImg = logoImages[selectedLogo];
 
 photo.onload = () => {
   state.hasPhoto=true;
